@@ -8,7 +8,8 @@ B::Dumper - Dump all B objects at once
 
 =head1 SYNOPSIS
 
-  $ perl -MO=-qq,Dumper -e 'print $scalar, @array, %hash'
+  $ perl -MO=-qq,Dumper -e '$scalar, @array, %hash'
+  $ perl -MB::Dumper -e 'print B::Dumper::JSON->dump(\%INC)'
 
 =head1 DESCRIPTION
 
@@ -49,7 +50,7 @@ sub compile (@) {
     return sub {
         my $main_stash = \%main::;
 
-        $dumper_class->dump(@newargs || $main_stash);
+        print $dumper_class->dump(@newargs || $main_stash);
 
         return @newargs;
     };
@@ -112,7 +113,7 @@ our @ISA = qw(B::Dumper::Base);
 
 sub dump {
     my ($self, @args) = @_;
-    print Dump $self->get_objects(@args);
+    return Dump $self->get_objects(@args);
 };
 
 
@@ -124,7 +125,7 @@ our @ISA = qw(B::Dumper::Base);
 
 sub dump {
     my ($self, @args) = @_;
-    print JSON->new->ascii(1)->encode($self->get_objects(@args));
+    return JSON->new->ascii(1)->encode($self->get_objects(@args));
 };
 
 
@@ -136,7 +137,7 @@ our @ISA = qw(B::Dumper::Base);
 
 sub dump {
     my ($self, @args) = @_;
-    print Dumper $self->get_objects(@args);
+    return Dumper $self->get_objects(@args);
 };
 
 
@@ -194,6 +195,28 @@ sub dump {
 };
 
 
+package B::RV;
+
+use mro 'c3';
+
+sub dump {
+    my ($self) = shift;
+    my ($memory) = my @args = @_;
+
+    my $rv = eval { $self->RV };
+    $memory->add_object($rv) if defined $rv;
+
+    my %data = (
+        $self->next::method(@args),
+        rv => ref $rv ? $$rv : $rv,
+        base_rv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
+    );
+    unshift @{ $data{isa} }, __PACKAGE__;
+
+    return %data;
+};
+
+
 package B::IV;
 
 use mro 'c3';
@@ -237,11 +260,16 @@ use mro 'c3';
 sub dump {
     my ($self) = shift;
     my ($memory) = my @args = @_;
+    
+    my $rv = eval { $self->RV };
+    $memory->add_object($rv) if defined $rv;
 
     my %data = (
         $self->next::method(@args),
+        rv => ref $rv ? $$rv : $rv,
         base_pv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
+    $data{lc($_)} = eval { $self->$_ } foreach qw(PV PVX);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
