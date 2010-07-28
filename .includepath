@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<includepath>
-  <includepathentry path="lib" />
-  <includepathentry path="/home/dexter/opt/ActivePerl-5.12-amd64/site/lib" />
-  <includepathentry path="/home/dexter/opt/ActivePerl-5.12-amd64/lib" />
-</includepath>
-
