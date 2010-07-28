@@ -13,15 +13,14 @@ my $module = 'B::Dumper';
 
 my $build = Module::Build->new(
     module_name => $module,
-    license => 'lgpl',
+    license => 'perl',
     requires => {
         'perl'               => 5.006,
     },
     optional => {
     },
     build_requires => {
-        'Class::Inspector'   => 0,
-        'Test::Unit::Lite'   => 0.12,
+        'Test::More'         => 0,
     },
     auto_configure_requires => 0,
     create_makefile_pl => 'traditional',
@@ -31,7 +30,7 @@ my $build = Module::Build->new(
     recursive_test_files => 1,
     add_to_cleanup => [
         '*.bak', '*.gz', '*.tgz', '*.ppd', '*.ppmx', '*.deb', '*.bat',
-        'Makefile', 'pm_to_blib', 'cover_db', 'xt/Debian_CPANTS.txt',
+        'Makefile', 'pm_to_blib', 'cover_db', 'Debian_CPANTS.txt',
         "$dist-*",
     ],
     meta_merge => {
