@@ -70,7 +70,9 @@ sub new {
 sub add_object {
     my ($self, $what) = @_;
 
-    my $bobj = eval { $what->isa('B::OBJECT') } ? $what : B::svref_2object($what);
+    my $bobj = eval { $what->isa('B::OBJECT') }
+        ? $what
+        : B::svref_2object(ref $what ? $what : \$what);
     my $addr = $$bobj;
 
     return if exists $self->{$addr};
@@ -230,6 +232,7 @@ sub dump {
         $self->next::method(@args),
         base_iv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
+    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(IV IVX UVX int_value needs64bits packiv);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
@@ -248,6 +251,7 @@ sub dump {
         $self->next::method(@args),
         base_nv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
+    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(NV NVX);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
@@ -270,7 +274,7 @@ sub dump {
         rv => ref $rv ? $$rv : $rv,
         base_pv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
-    $data{lc($_)} = eval { $self->$_ } foreach qw(PV PVX);
+    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(PV PVX);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
@@ -321,7 +325,7 @@ sub dump {
     my ($self) = shift;
     my ($memory) = my @args = @_;
 
-    my $svstash = eval { $self->SvSTASH };
+    my $svstash = eval { no warnings; $self->SvSTASH };
     $memory->add_object($svstash);
 
     my %data = (
@@ -329,7 +333,7 @@ sub dump {
         svstash => $$svstash,
         base_pvmg => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
-    $data{lc($_)} = eval { $self->$_ } foreach qw(MAGIC);
+    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(MAGIC);
     unshift @{ $data{isa} }, __PACKAGE__;
 
 
@@ -357,7 +361,7 @@ sub dump {
         $self->next::method(@args),
         array => \%newarray,
     );
-    $data{lc($_)} = eval { $self->$_ } foreach qw(FILL MAX KEYS RITER NAME PMROOT);
+    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(FILL MAX KEYS RITER NAME PMROOT);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
@@ -384,7 +388,7 @@ sub dump {
         $self->next::method(@args),
         array => \@newarray,
     );
-    $data{lc($_)} = eval { $self->$_ } foreach qw(FILL MAX AvFLAGS);
+    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(FILL MAX AvFLAGS);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
