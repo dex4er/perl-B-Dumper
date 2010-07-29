@@ -364,6 +364,33 @@ sub dump {
 };
 
 
+package B::AV;
+
+use mro 'c3';
+
+sub dump {
+    my ($self) = shift;
+    my ($memory) = my @args = @_;
+
+    my @array = $self->ARRAY;
+    my @newarray;
+
+    foreach my $val (@array) {
+        $memory->add_object($val);
+        push @newarray, $$val;
+    };
+
+    my %data = (
+        $self->next::method(@args),
+        array => \@newarray,
+    );
+    $data{lc($_)} = eval { $self->$_ } foreach qw(FILL MAX AvFLAGS);
+    unshift @{ $data{isa} }, __PACKAGE__;
+
+    return %data;
+};
+
+
 1;
 
 
