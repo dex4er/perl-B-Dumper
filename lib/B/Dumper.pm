@@ -173,8 +173,10 @@ sub dump {
     my %data = (
         $self->B::BASE::dump(@args),
     );
-    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw();
+    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(FLAGS MOREMAGIC OBJ PRIVATE PTR REGEX TYPE precomp);
     unshift @{ $data{isa} }, __PACKAGE__;
+
+    $memory->add_object($self->OBJ);
 
     return %data;
 };
@@ -432,6 +434,24 @@ sub dump {
         array => \@newarray,
     );
     $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(FILL MAX AvFLAGS);
+    unshift @{ $data{isa} }, __PACKAGE__;
+
+    return %data;
+};
+
+
+package B::GV;
+
+use mro 'c3';
+
+sub dump {
+    my ($self) = shift;
+    my ($memory) = my @args = @_;
+
+    my %data = (
+        $self->next::method(@args),
+    );
+    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(NAME SAFENAME);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
