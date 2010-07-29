@@ -70,7 +70,7 @@ sub new {
 sub add_object {
     my ($self, $what) = @_;
 
-    my $bobj = eval { $what->isa('B::OBJECT') }
+    my $bobj = eval { $what->isa('B::OBJECT') || $what->isa('B::MAGIC') }
         ? $what
         : B::svref_2object(ref $what ? $what : \$what);
     my $addr = $$bobj;
@@ -145,7 +145,7 @@ sub dump {
 };
 
 
-package B::OBJECT;
+package B::BASE;
 
 use mro 'c3';
 
@@ -155,7 +155,41 @@ sub dump {
 
     my %data = (
         class => B::class($self),
-        base_object => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
+    );
+    unshift @{ $data{isa} }, __PACKAGE__; # TODO remove it
+
+    return %data;
+};
+
+
+package B::MAGIC;
+
+use mro 'c3';
+
+sub dump {
+    my ($self) = shift;
+    my ($memory) = my @args = @_;
+
+    my %data = (
+        $self->B::BASE::dump(@args),
+    );
+    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw();
+    unshift @{ $data{isa} }, __PACKAGE__;
+
+    return %data;
+};
+
+
+package B::OBJECT;
+
+use mro 'c3';
+
+sub dump {
+    my ($self) = shift;
+    my ($memory) = my @args = @_;
+
+    my %data = (
+        $self->B::BASE::dump(@args),
     );
     unshift @{ $data{isa} }, __PACKAGE__;
 
@@ -332,14 +366,17 @@ sub dump {
     my ($memory) = my @args = @_;
 
     my $svstash = eval { no warnings; $self->SvSTASH };
-    $memory->add_object($svstash);
+    $memory->add_object($svstash) if defined $svstash;
+
+    my $magic = eval { no warnings; $self->MAGIC };
+    $memory->add_object($magic) if defined $magic;
 
     my %data = (
         $self->next::method(@args),
         svstash => $$svstash,
+        magic   => ref $magic ? $$magic : $magic,
         base_pvmg => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
-    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(MAGIC);
     unshift @{ $data{isa} }, __PACKAGE__;
 
 
