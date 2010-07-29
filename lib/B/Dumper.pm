@@ -71,7 +71,7 @@ sub add_object {
     my ($self, $what) = @_;
 
     my $bobj = eval { $what->isa('B::OBJECT') } ? $what : B::svref_2object($what);
-    my $addr = ${$bobj};
+    my $addr = $$bobj;
 
     return if exists $self->{$addr};
 
@@ -350,7 +350,7 @@ sub dump {
 
     while (my ($key, $val) = each %array) {
         $memory->add_object($val);
-        $newarray{$key} = ${$val};
+        $newarray{$key} = $$val;
     };
 
     my %data = (
