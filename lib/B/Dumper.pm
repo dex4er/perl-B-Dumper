@@ -77,7 +77,7 @@ sub add_object {
 
     return if exists $self->{$addr};
 
-    $self->{$addr} = 1;  # prevent endless recursing # FIXME: undef? empty string?
+    $self->{$addr} = 1;  # prevent endless recursing # TODO undef? empty string?
     $self->{$addr} = {
         addr => $addr,
         $bobj->dump($self),
@@ -192,6 +192,7 @@ sub dump {
         $self->next::method(@args),
         base_sv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
+    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(REFCNT FLAGS);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
@@ -228,8 +229,12 @@ sub dump {
     my ($self) = shift;
     my ($memory) = my @args = @_;
 
+    my $rv = eval { no warnings; $self->RV };
+    $memory->add_object($rv) if defined $rv;
+
     my %data = (
         $self->next::method(@args),
+        rv => ref $rv ? $$rv : $rv,
         base_iv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(IV IVX UVX int_value needs64bits packiv);
@@ -266,7 +271,7 @@ sub dump {
     my ($self) = shift;
     my ($memory) = my @args = @_;
     
-    my $rv = eval { $self->RV };
+    my $rv = eval { no warnings; $self->RV };
     $memory->add_object($rv) if defined $rv;
 
     my %data = (
