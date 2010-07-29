@@ -9,6 +9,7 @@ B::Dumper - Dump all B objects at once
 =head1 SYNOPSIS
 
   $ perl -MO=-qq,Dumper -e '$scalar, @array, %hash'
+
   $ perl -MB::Dumper -e 'print B::Dumper::JSON->dump(\%INC)'
 
 =head1 DESCRIPTION
