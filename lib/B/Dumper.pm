@@ -80,6 +80,7 @@ sub add_object {
     $self->{$addr} = 1;  # prevent endless recursing # TODO undef? empty string?
     $self->{$addr} = {
         addr => $addr,
+        addr_hex => sprintf("0x%x", $addr),
         $bobj->dump($self),
     };
 
