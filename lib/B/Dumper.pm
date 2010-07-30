@@ -8,9 +8,9 @@ B::Dumper - Dump all B objects at once
 
 =head1 SYNOPSIS
 
-  $ perl -MO=-qq,Dumper -e '$scalar, @array, %hash'
+  $ perl -MB::Dumper::YAML -MO=-qq,Dumper -e '$scalar, @array, %hash'
 
-  $ perl -MB::Dumper -e 'print B::Dumper::JSON->dump(\%INC)'
+  $ perl -MB::Dumper::JSON -e 'print B::Dumper::JSON->dump(\%INC)'
 
 =head1 DESCRIPTION
 
@@ -116,42 +116,6 @@ sub get_objects {
     return \%hash;
 };
 
-
-
-package B::Dumper::YAML;
-
-use YAML::XS;   # YAML::Tiny does not encode properly keys
-
-our @ISA = qw(B::Dumper::Base);
-
-sub dump {
-    my ($self, @args) = @_;
-    return Dump $self->get_objects(@args);
-};
-
-
-package B::Dumper::JSON;
-
-use JSON;
-
-our @ISA = qw(B::Dumper::Base);
-
-sub dump {
-    my ($self, @args) = @_;
-    return JSON->new->ascii(1)->encode($self->get_objects(@args));
-};
-
-
-package B::Dumper::Perl;
-
-use Data::Dumper;
-
-our @ISA = qw(B::Dumper::Base);
-
-sub dump {
-    my ($self, @args) = @_;
-    return Dumper $self->get_objects(@args);
-};
 
 
 package B::BASE;
