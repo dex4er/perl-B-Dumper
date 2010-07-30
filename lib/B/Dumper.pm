@@ -66,7 +66,7 @@ sub new {
 
     return bless {
         addr   => {},
-        keygen => sub { $_[0] },
+        keygen => sub { sprintf "0x%x", $_[0] },
         @args,
     } => $class;
 };
@@ -81,17 +81,18 @@ sub add_object {
         ? $what
         : B::svref_2object(ref $what ? $what : \$what);
     my $addr = $$bobj;
+    my $addrkey = $self->keygen->($addr);
 
     return if exists $self->{$addr};
 
-    $self->addr->{$addr} = 1;  # prevent endless recursing # TODO undef? empty string?
-    $self->addr->{$addr} = {
+    $self->addr->{$addrkey} = 1;  # prevent endless recursing # TODO undef? empty string?
+    $self->addr->{$addrkey} = {
         addr => $addr,
-        addr_hex => sprintf("0x%x", $addr),
+        addrkey => $addrkey,
         $bobj->dump($self),
     };
 
-    return { $addr => $self->addr->{addr} };
+    return { $addrkey => $self->addr->{addr} };
 };
 
 
@@ -257,7 +258,7 @@ sub dump {
 
     my %data = (
         $self->next::method(@args),
-        rv => ref $rv ? $$rv : $rv,
+        rv => $memory->keygen->(ref $rv ? $$rv : $rv),
         base_rv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     unshift @{ $data{isa} }, __PACKAGE__;
@@ -279,7 +280,7 @@ sub dump {
 
     my %data = (
         $self->next::method(@args),
-        rv => ref $rv ? $$rv : $rv,
+        rv => $memory->keygen->(ref $rv ? $$rv : $rv),
         base_iv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(IV IVX UVX int_value needs64bits packiv);
@@ -321,7 +322,7 @@ sub dump {
 
     my %data = (
         $self->next::method(@args),
-        rv => ref $rv ? $$rv : $rv,
+        rv => $memory->keygen->(ref $rv ? $$rv : $rv),
         base_pv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(PV PVX);
@@ -383,8 +384,8 @@ sub dump {
 
     my %data = (
         $self->next::method(@args),
-        svstash => $$svstash,
-        magic   => ref $magic ? $$magic : $magic,
+        svstash => $memory->keygen->($$svstash),
+        magic   => $memory->keygen->(ref $magic ? $$magic : $magic),
         base_pvmg => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     unshift @{ $data{isa} }, __PACKAGE__;
@@ -407,7 +408,7 @@ sub dump {
 
     while (my ($key, $val) = each %array) {
         $memory->add_object($val);
-        $newarray{$key} = $$val;
+        $newarray{$key} = $memory->keygen->($$val);
     };
 
     my %data = (
@@ -434,7 +435,7 @@ sub dump {
 
     foreach my $val (@array) {
         $memory->add_object($val);
-        push @newarray, $$val;
+        push @newarray, $memory->keygen->($$val);
     };
 
     my %data = (
