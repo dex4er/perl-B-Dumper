@@ -218,11 +218,14 @@ sub dump {
     my ($memory) = my @args = @_;
 
     my $rv = eval { $self->RV };
-    $memory->add_object($rv) if defined $rv;
+    if (defined $rv) {
+          $memory->add_object($rv);
+          $rv = $memory->keygen->($$rv);
+    };
 
     my %data = (
         $self->next::method(@args),
-        rv => $memory->keygen->(ref $rv ? $$rv : $rv),
+        rv => $rv,
         base_rv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     unshift @{ $data{isa} }, __PACKAGE__;
@@ -240,11 +243,14 @@ sub dump {
     my ($memory) = my @args = @_;
 
     my $rv = eval { no warnings; $self->RV };
-    $memory->add_object($rv) if defined $rv;
+    if (defined $rv) {
+          $memory->add_object($rv);
+          $rv = $memory->keygen->($$rv);
+    };
 
     my %data = (
         $self->next::method(@args),
-        rv => $memory->keygen->(ref $rv ? $$rv : $rv),
+        rv => $rv,
         base_iv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(IV IVX UVX int_value needs64bits packiv);
@@ -282,11 +288,14 @@ sub dump {
     my ($memory) = my @args = @_;
     
     my $rv = eval { no warnings; $self->RV };
-    $memory->add_object($rv) if defined $rv;
+    if (defined $rv) {
+          $memory->add_object($rv);
+          $rv = $memory->keygen->($$rv);
+    };
 
     my %data = (
         $self->next::method(@args),
-        rv => $memory->keygen->(ref $rv ? $$rv : $rv),
+        rv => $rv,
         base_pv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(PV PVX);
@@ -341,15 +350,21 @@ sub dump {
     my ($memory) = my @args = @_;
 
     my $svstash = eval { no warnings; $self->SvSTASH };
-    $memory->add_object($svstash) if defined $svstash;
+    if (defined $svstash) {
+          $memory->add_object($svstash);
+          $svstash = $memory->keygen->($$svstash);
+    };
 
     my $magic = eval { no warnings; $self->MAGIC };
-    $memory->add_object($magic) if defined $magic;
+    if (defined $magic) {
+          $memory->add_object($magic);
+          $magic = $memory->keygen->($$magic);
+    };
 
     my %data = (
         $self->next::method(@args),
-        svstash => $memory->keygen->($$svstash),
-        magic   => $memory->keygen->(ref $magic ? $$magic : $magic),
+        svstash => $svstash,
+        magic   => $magic,
         base_pvmg => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     unshift @{ $data{isa} }, __PACKAGE__;
