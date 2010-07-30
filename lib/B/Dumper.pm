@@ -97,15 +97,21 @@ sub add_object {
 
 package B::Dumper::Base;
 
+sub new {
+    my ($class, @args) = @_;
+    return bless {
+        memory => B::Dumper::Memory->new(@args),
+    } => $class;
+};
+
+sub memory { $_[0]->{memory} };
+
 sub get_objects {
-    my ($class) = shift;
-    my @args = @_;
+    my ($self, @args) = @_;
 
-    my $memory = B::Dumper::Memory->new;
+    $self->memory->add_object($_) foreach @args;
 
-    $memory->add_object($_) foreach @args;
-
-    my %hash = %{$memory->addr};
+    my %hash = %{$self->memory->addr};
     return \%hash;
 };
 
