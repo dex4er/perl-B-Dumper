@@ -62,10 +62,17 @@ package B::Dumper::Memory;
 use B;
 
 sub new {
-    my ($class) = @_;
+    my ($class, %args) = @_;
 
-    return bless +{} => $class;
+    return bless {
+        addr   => {},
+        keygen => sub { $_[0] },
+        %args,
+    } => $class;
 };
+
+sub addr   { $_[0]->{addr} };
+sub keygen { $_[0]->{keygen} };
 
 sub add_object {
     my ($self, $what) = @_;
@@ -77,19 +84,14 @@ sub add_object {
 
     return if exists $self->{$addr};
 
-    $self->{$addr} = 1;  # prevent endless recursing # TODO undef? empty string?
-    $self->{$addr} = {
+    $self->addr->{$addr} = 1;  # prevent endless recursing # TODO undef? empty string?
+    $self->addr->{$addr} = {
         addr => $addr,
         addr_hex => sprintf("0x%x", $addr),
         $bobj->dump($self),
     };
 
-    return { $addr => $self->{addr} };
-};
-
-sub array {
-    my ($self) = @_;
-    return %$self;
+    return { $addr => $self->addr->{addr} };
 };
 
 
@@ -103,7 +105,7 @@ sub get_objects {
 
     $memory->add_object($_) foreach @args;
 
-    my %hash = %$memory;
+    my %hash = %{$memory->addr};
     return \%hash;
 };
 
