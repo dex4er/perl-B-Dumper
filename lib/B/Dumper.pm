@@ -62,12 +62,12 @@ package B::Dumper::Memory;
 use B;
 
 sub new {
-    my ($class, %args) = @_;
+    my ($class, @args) = @_;
 
     return bless {
         addr   => {},
         keygen => sub { $_[0] },
-        %args,
+        @args,
     } => $class;
 };
 
