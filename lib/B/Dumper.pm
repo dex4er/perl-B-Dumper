@@ -8,6 +8,15 @@ B::Dumper - Dump all B objects at once
 
 =head1 SYNOPSIS
 
+  use B::Dumper;
+  use Scalar::Utils qw(refaddr);
+
+  my @a = (1..4);
+  my $m = B::Dumper::Memory->new;
+  $m->add_object(\@a);
+  my $addrkey = $m->keygen(refaddr \@a);
+  print $m->addr->{$addrkey}->{fill};   # index for last element
+
   $ perl -MB::Dumper::YAML -MO=-qq,Dumper -e '$scalar, @array, %hash'
 
   $ perl -MB::Dumper::JSON -e 'print B::Dumper::JSON->dump(\%INC)'
@@ -72,7 +81,7 @@ sub new {
 };
 
 sub addr   { $_[0]->{addr} };
-sub keygen { $_[0]->{keygen} };
+sub keygen { $_[0]->{keygen}->($_[1]) };
 
 sub add_object {
     my ($self, $what) = @_;
@@ -81,7 +90,7 @@ sub add_object {
         ? $what
         : B::svref_2object(ref $what ? $what : \$what);
     my $addr = $$bobj;
-    my $addrkey = $self->keygen->($addr);
+    my $addrkey = $self->keygen($addr);
 
     return if exists $self->{$addr};
 
@@ -116,6 +125,11 @@ sub get_objects {
     return \%hash;
 };
 
+sub dump {
+    my ($self, @args) = @_;
+    $self = $self->new if not ref $self;
+    return $self->get_objects(@args);
+};
 
 
 package B::BASE;
@@ -220,7 +234,7 @@ sub dump {
     my $rv = eval { $self->RV };
     if (defined $rv) {
           $memory->add_object($rv);
-          $rv = $memory->keygen->($$rv);
+          $rv = $memory->keygen($$rv);
     };
 
     my %data = (
@@ -245,7 +259,7 @@ sub dump {
     my $rv = eval { no warnings; $self->RV };
     if (defined $rv) {
           $memory->add_object($rv);
-          $rv = $memory->keygen->($$rv);
+          $rv = $memory->keygen($$rv);
     };
 
     my %data = (
@@ -290,7 +304,7 @@ sub dump {
     my $rv = eval { no warnings; $self->RV };
     if (defined $rv) {
           $memory->add_object($rv);
-          $rv = $memory->keygen->($$rv);
+          $rv = $memory->keygen($$rv);
     };
 
     my %data = (
@@ -352,13 +366,13 @@ sub dump {
     my $svstash = eval { no warnings; $self->SvSTASH };
     if (defined $svstash) {
           $memory->add_object($svstash);
-          $svstash = $memory->keygen->($$svstash);
+          $svstash = $memory->keygen($$svstash);
     };
 
     my $magic = eval { no warnings; $self->MAGIC };
     if (defined $magic) {
           $memory->add_object($magic);
-          $magic = $memory->keygen->($$magic);
+          $magic = $memory->keygen($$magic);
     };
 
     my %data = (
@@ -387,7 +401,7 @@ sub dump {
 
     while (my ($key, $val) = each %array) {
         $memory->add_object($val);
-        $newarray{$key} = $memory->keygen->($$val);
+        $newarray{$key} = $memory->keygen($$val);
     };
 
     my %data = (
@@ -414,7 +428,7 @@ sub dump {
 
     foreach my $val (@array) {
         $memory->add_object($val);
-        push @newarray, $memory->keygen->($$val);
+        push @newarray, $memory->keygen($$val);
     };
 
     my %data = (
