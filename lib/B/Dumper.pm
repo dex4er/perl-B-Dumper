@@ -14,8 +14,8 @@ B::Dumper - Dump all B objects at once
   my @a = (1..4);
   my $m = B::Dumper::Memory->new;
   $m->add_object(\@a);
-  my $addrkey = $m->keygen(refaddr \@a);
-  print $m->addr->{$addrkey}->{fill};   # index for last element
+  my $key = $m->key(refaddr \@a);
+  print $m->addr->{$key}->{fill};   # index for last element
 
   $ perl -MB::Dumper::YAML -MO=-qq,Dumper -e '$scalar, @array, %hash'
 
@@ -74,14 +74,14 @@ sub new {
     my ($class, @args) = @_;
 
     return bless {
-        addr   => {},
-        keygen => sub { sprintf "0x%x", $_[0] },
+        addr => {},
+        key  => sub { sprintf "0x%x", $_[0] },
         @args,
     } => $class;
 };
 
 sub addr   { $_[0]->{addr} };
-sub keygen { $_[0]->{keygen}->($_[1]) };
+sub key { $_[0]->{key}->($_[1]) };
 
 sub add_object {
     my ($self, $what) = @_;
@@ -90,18 +90,18 @@ sub add_object {
         ? $what
         : B::svref_2object(ref $what ? $what : \$what);
     my $addr = $$bobj;
-    my $addrkey = $self->keygen($addr);
+    my $key = $self->key($addr);
 
     return if exists $self->{$addr};
 
-    $self->addr->{$addrkey} = 1;  # prevent endless recursing # TODO undef? empty string?
-    $self->addr->{$addrkey} = {
+    $self->addr->{$key} = 1;  # prevent endless recursing # TODO undef? empty string?
+    $self->addr->{$key} = {
         addr => $addr,
-        addrkey => $addrkey,
+        key => $key,
         $bobj->dump($self),
     };
 
-    return { $addrkey => $self->addr->{addr} };
+    return { $key => $self->addr->{addr} };
 };
 
 
@@ -234,7 +234,7 @@ sub dump {
     my $rv = eval { $self->RV };
     if (defined $rv) {
           $memory->add_object($rv);
-          $rv = $memory->keygen($$rv);
+          $rv = $memory->key($$rv);
     };
 
     my %data = (
@@ -259,7 +259,7 @@ sub dump {
     my $rv = eval { no warnings; $self->RV };
     if (defined $rv) {
           $memory->add_object($rv);
-          $rv = $memory->keygen($$rv);
+          $rv = $memory->key($$rv);
     };
 
     my %data = (
@@ -304,7 +304,7 @@ sub dump {
     my $rv = eval { no warnings; $self->RV };
     if (defined $rv) {
           $memory->add_object($rv);
-          $rv = $memory->keygen($$rv);
+          $rv = $memory->key($$rv);
     };
 
     my %data = (
@@ -366,13 +366,13 @@ sub dump {
     my $svstash = eval { no warnings; $self->SvSTASH };
     if (defined $svstash) {
           $memory->add_object($svstash);
-          $svstash = $memory->keygen($$svstash);
+          $svstash = $memory->key($$svstash);
     };
 
     my $magic = eval { no warnings; $self->MAGIC };
     if (defined $magic) {
           $memory->add_object($magic);
-          $magic = $memory->keygen($$magic);
+          $magic = $memory->key($$magic);
     };
 
     my %data = (
@@ -401,7 +401,7 @@ sub dump {
 
     while (my ($key, $val) = each %array) {
         $memory->add_object($val);
-        $newarray{$key} = $memory->keygen($$val);
+        $newarray{$key} = $memory->key($$val);
     };
 
     my %data = (
@@ -428,7 +428,7 @@ sub dump {
 
     foreach my $val (@array) {
         $memory->add_object($val);
-        push @newarray, $memory->keygen($$val);
+        push @newarray, $memory->key($$val);
     };
 
     my %data = (
