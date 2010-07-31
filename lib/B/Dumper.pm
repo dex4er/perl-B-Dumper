@@ -138,7 +138,7 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my %data = (
         class => B::class($self),
@@ -155,7 +155,7 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my %data = (
         $self->B::BASE::dump(@args),
@@ -163,7 +163,7 @@ sub dump {
     $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(FLAGS MOREMAGIC OBJ PRIVATE PTR REGEX TYPE precomp);
     unshift @{ $data{isa} }, __PACKAGE__;
 
-    $memory->add_object($self->OBJ);
+    $m->add_object($self->OBJ);
 
     return %data;
 };
@@ -175,7 +175,7 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my %data = (
         $self->B::BASE::dump(@args),
@@ -192,7 +192,7 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my %data = (
         $self->next::method(@args),
@@ -210,7 +210,7 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my %data = (
         $self->next::method(@args),
@@ -229,12 +229,12 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my $rv = eval { $self->RV };
     if (defined $rv) {
-          $memory->add_object($rv);
-          $rv = $memory->key($$rv);
+          $m->add_object($rv);
+          $rv = $m->key($$rv);
     };
 
     my %data = (
@@ -254,12 +254,12 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my $rv = eval { no warnings; $self->RV };
     if (defined $rv) {
-          $memory->add_object($rv);
-          $rv = $memory->key($$rv);
+          $m->add_object($rv);
+          $rv = $m->key($$rv);
     };
 
     my %data = (
@@ -280,7 +280,7 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my %data = (
         $self->next::method(@args),
@@ -299,12 +299,12 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
     
     my $rv = eval { no warnings; $self->RV };
     if (defined $rv) {
-          $memory->add_object($rv);
-          $rv = $memory->key($$rv);
+          $m->add_object($rv);
+          $rv = $m->key($$rv);
     };
 
     my %data = (
@@ -325,7 +325,7 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my %data = (
         $self->next::method(@args),
@@ -343,7 +343,7 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my %data = (
         $self->next::method(@args),
@@ -361,18 +361,18 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my $svstash = eval { no warnings; $self->SvSTASH };
     if (defined $svstash) {
-          $memory->add_object($svstash);
-          $svstash = $memory->key($$svstash);
+          $m->add_object($svstash);
+          $svstash = $m->key($$svstash);
     };
 
     my $magic = eval { no warnings; $self->MAGIC };
     if (defined $magic) {
-          $memory->add_object($magic);
-          $magic = $memory->key($$magic);
+          $m->add_object($magic);
+          $magic = $m->key($$magic);
     };
 
     my %data = (
@@ -394,14 +394,14 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my %array = $self->ARRAY;
     my %newarray;
 
     while (my ($key, $val) = each %array) {
-        $memory->add_object($val);
-        $newarray{$key} = $memory->key($$val);
+        $m->add_object($val);
+        $newarray{$key} = $m->key($$val);
     };
 
     my %data = (
@@ -421,14 +421,14 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my @array = $self->ARRAY;
     my @newarray;
 
     foreach my $val (@array) {
-        $memory->add_object($val);
-        push @newarray, $memory->key($$val);
+        $m->add_object($val);
+        push @newarray, $m->key($$val);
     };
 
     my %data = (
@@ -448,7 +448,7 @@ use mro 'c3';
 
 sub dump {
     my ($self) = shift;
-    my ($memory) = my @args = @_;
+    my ($m) = my @args = @_;
 
     my %data = (
         $self->next::method(@args),
