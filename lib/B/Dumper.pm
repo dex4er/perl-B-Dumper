@@ -92,7 +92,7 @@ sub add_object {
     my $addr = $$bobj;
     my $key = $self->key($addr);
 
-    return if exists $self->{$addr};
+    return if exists $self->addr->{$key};
 
     $self->addr->{$key} = 1;  # prevent endless recursing # TODO undef? empty string?
     $self->addr->{$key} = {
@@ -101,7 +101,7 @@ sub add_object {
         $bobj->dump($self),
     };
 
-    return { $key => $self->addr->{addr} };
+    return { $key => $self->addr->{$key} };
 };
 
 
@@ -480,8 +480,14 @@ sub dump {
     my %data = (
         $self->next::method(@args),
     );
-    $data{lc($_)} = $self->get($_) foreach qw(NAME SAFENAME);
+    $data{lc($_)} = $self->get($_) foreach qw(NAME SAFENAME STASH);
     unshift @{ $data{isa} }, __PACKAGE__;
+
+    my $stash = $self->get('STASH');
+    if (defined $stash) {
+          $m->add_object($stash);
+          $data{stash} = $m->key($$stash);
+    };
 
     return %data;
 };
