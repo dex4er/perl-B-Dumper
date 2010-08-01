@@ -393,26 +393,23 @@ sub dump {
     my ($self) = shift;
     my ($m) = my @args = @_;
 
+    my %data = (
+        $self->next::method(@args),
+        base_pvmg => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
+    );
+    unshift @{ $data{isa} }, __PACKAGE__;
+
     my $svstash = $self->get('SvSTASH');
     if (defined $svstash) {
           $m->add_object($svstash);
-          $svstash = $m->key($$svstash);
+          $data{svstash} = $m->key($$svstash);
     };
 
     my $magic = $self->get('MAGIC');
     if (defined $magic) {
           $m->add_object($magic);
-          $magic = $m->key($$magic);
+          $data{magic} = $m->key($$magic);
     };
-
-    my %data = (
-        $self->next::method(@args),
-        svstash => $svstash,
-        magic   => $magic,
-        base_pvmg => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
-    );
-    unshift @{ $data{isa} }, __PACKAGE__;
-
 
     return %data;
 };
