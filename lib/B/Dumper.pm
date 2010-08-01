@@ -148,6 +148,12 @@ sub dump {
     return %data;
 };
 
+sub get {
+    my ($self, $what, @args) = @_;
+    no warnings;
+    return eval { $self->$what(@args) };
+};
+
 
 package B::MAGIC;
 
@@ -160,12 +166,16 @@ sub dump {
     my %data = (
         $self->B::BASE::dump(@args),
     );
-    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(FLAGS MOREMAGIC OBJ PRIVATE PTR REGEX TYPE precomp);
+    $data{lc($_)} = $self->get($_) foreach qw(FLAGS MOREMAGIC OBJ PRIVATE PTR REGEX TYPE precomp);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     $m->add_object($self->OBJ);
 
     return %data;
+};
+
+sub get {
+    goto &B::BASE::get;
 };
 
 
@@ -183,6 +193,11 @@ sub dump {
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
+};
+
+sub get {
+    my ($self, @args);
+    goto &B::BASE::get;
 };
 
 
@@ -216,7 +231,7 @@ sub dump {
         $self->next::method(@args),
         base_sv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
-    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(REFCNT FLAGS);
+    $data{lc($_)} = $self->get($_) foreach qw(REFCNT FLAGS);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
@@ -231,18 +246,17 @@ sub dump {
     my ($self) = shift;
     my ($m) = my @args = @_;
 
-    my $rv = eval { $self->RV };
-    if (defined $rv) {
-          $m->add_object($rv);
-          $rv = $m->key($$rv);
-    };
-
     my %data = (
         $self->next::method(@args),
-        rv => $rv,
         base_rv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     unshift @{ $data{isa} }, __PACKAGE__;
+
+    my $rv = $self->get('RV');
+    if (defined $rv) {
+          $m->add_object($rv);
+          $data{rv} = $m->key($$rv);
+    };
 
     return %data;
 };
@@ -256,19 +270,30 @@ sub dump {
     my ($self) = shift;
     my ($m) = my @args = @_;
 
-    my $rv = eval { no warnings; $self->RV };
-    if (defined $rv) {
-          $m->add_object($rv);
-          $rv = $m->key($$rv);
-    };
-
     my %data = (
         $self->next::method(@args),
-        rv => $rv,
         base_iv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
-    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(IV IVX UVX int_value needs64bits packiv);
     unshift @{ $data{isa} }, __PACKAGE__;
+
+    if ($self->FLAGS & B::SVf_IOK) {
+        $data{lc($_)} = $self->get($_) foreach qw(int_value needs64bits packiv);
+        if ($self->FLAGS & B::SVf_IVisUV) {
+            $data{uvx} = $self->get('UVX');
+        }
+        else {
+            $data{lc($_)} = $self->get($_) foreach qw(IV IVX);
+        };
+
+    };
+
+    if ($self->FLAGS & B::SVf_ROK) {
+        my $rv = $self->get('RV');
+        if (defined $rv) {
+              $m->add_object($rv);
+              $data{rv} = $m->key($$rv);
+        };
+    };
 
     return %data;
 };
@@ -286,8 +311,11 @@ sub dump {
         $self->next::method(@args),
         base_nv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
-    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(NV NVX);
     unshift @{ $data{isa} }, __PACKAGE__;
+
+    if ($self->FLAGS & B::SVf_NOK) {
+        $data{lc($_)} = $self->get($_) foreach qw(NV NVX);
+    };
 
     return %data;
 };
@@ -300,20 +328,22 @@ use mro 'c3';
 sub dump {
     my ($self) = shift;
     my ($m) = my @args = @_;
-    
-    my $rv = eval { no warnings; $self->RV };
-    if (defined $rv) {
-          $m->add_object($rv);
-          $rv = $m->key($$rv);
-    };
 
     my %data = (
         $self->next::method(@args),
-        rv => $rv,
         base_pv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
-    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(PV PVX);
     unshift @{ $data{isa} }, __PACKAGE__;
+
+    if ($self->FLAGS & B::SVf_POK) {
+        $data{lc($_)} = $self->get($_) foreach qw(PV PVX);
+    };
+
+    my $rv = $self->get('RV');
+    if (defined $rv) {
+          $m->add_object($rv);
+          $data{rv} = $m->key($$rv);
+    };
 
     return %data;
 };
@@ -363,13 +393,13 @@ sub dump {
     my ($self) = shift;
     my ($m) = my @args = @_;
 
-    my $svstash = eval { no warnings; $self->SvSTASH };
+    my $svstash = $self->get('SvSTASH');
     if (defined $svstash) {
           $m->add_object($svstash);
           $svstash = $m->key($$svstash);
     };
 
-    my $magic = eval { no warnings; $self->MAGIC };
+    my $magic = $self->get('MAGIC');
     if (defined $magic) {
           $m->add_object($magic);
           $magic = $m->key($$magic);
@@ -408,7 +438,7 @@ sub dump {
         $self->next::method(@args),
         array => \%newarray,
     );
-    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(FILL MAX KEYS RITER NAME PMROOT);
+    $data{lc($_)} = $self->get($_) foreach qw(FILL MAX KEYS RITER NAME PMROOT);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
@@ -435,7 +465,7 @@ sub dump {
         $self->next::method(@args),
         array => \@newarray,
     );
-    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(FILL MAX AvFLAGS);
+    $data{lc($_)} = $self->get($_) foreach qw(FILL MAX AvFLAGS);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
@@ -453,7 +483,7 @@ sub dump {
     my %data = (
         $self->next::method(@args),
     );
-    $data{lc($_)} = eval { no warnings; $self->$_ } foreach qw(NAME SAFENAME);
+    $data{lc($_)} = $self->get($_) foreach qw(NAME SAFENAME);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
