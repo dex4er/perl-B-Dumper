@@ -94,7 +94,7 @@ sub add_object {
 
     return if exists $self->addr->{$key};
 
-    $self->addr->{$key} = 1;  # prevent endless recursing # TODO undef? empty string?
+    $self->addr->{$key} = undef;
     $self->addr->{$key} = {
         addr => $addr,
         key => $key,
