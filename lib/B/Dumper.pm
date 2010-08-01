@@ -154,6 +154,15 @@ sub get {
     return eval { $self->$what(@args) };
 };
 
+sub add_object {
+    my ($self, $what, $memory, $hashref) = @_;
+    my $rv = $self->get($what);
+    if (defined $rv) {
+        $memory->add_object($rv);
+        $hashref->{lc($what)} = $memory->key($$rv);
+    };
+};
+
 
 package B::MAGIC;
 
@@ -166,17 +175,17 @@ sub dump {
     my %data = (
         $self->B::BASE::dump(@args),
     );
-    $data{lc($_)} = $self->get($_) foreach qw(FLAGS MOREMAGIC OBJ PRIVATE PTR REGEX TYPE precomp);
+    $data{lc($_)} = $self->get($_) foreach qw(FLAGS MOREMAGIC PRIVATE PTR REGEX TYPE precomp);
     unshift @{ $data{isa} }, __PACKAGE__;
 
-    $m->add_object($self->OBJ);
+    $self->add_object('OBJ', $m, \%data);
 
     return %data;
 };
 
-sub get {
-    goto &B::BASE::get;
-};
+sub get { goto &B::BASE::get };
+
+sub add_object { goto &B::BASE::add_object };
 
 
 package B::OBJECT;
@@ -195,10 +204,9 @@ sub dump {
     return %data;
 };
 
-sub get {
-    my ($self, @args);
-    goto &B::BASE::get;
-};
+sub get { goto &B::BASE::get };
+
+sub add_object { goto &B::BASE::add_object };
 
 
 package B::SPECIAL;
@@ -252,11 +260,7 @@ sub dump {
     );
     unshift @{ $data{isa} }, __PACKAGE__;
 
-    my $rv = $self->get('RV');
-    if (defined $rv) {
-          $m->add_object($rv);
-          $data{rv} = $m->key($$rv);
-    };
+    $self->add_object('RV', $m, \%data);
 
     return %data;
 };
@@ -288,11 +292,7 @@ sub dump {
     };
 
     if ($self->FLAGS & B::SVf_ROK) {
-        my $rv = $self->get('RV');
-        if (defined $rv) {
-              $m->add_object($rv);
-              $data{rv} = $m->key($$rv);
-        };
+        $self->add_object('RV', $m, \%data);
     };
 
     return %data;
@@ -339,11 +339,7 @@ sub dump {
         $data{lc($_)} = $self->get($_) foreach qw(PV PVX);
     };
 
-    my $rv = $self->get('RV');
-    if (defined $rv) {
-          $m->add_object($rv);
-          $data{rv} = $m->key($$rv);
-    };
+    $self->add_object('RV', $m, \%data);
 
     return %data;
 };
@@ -399,17 +395,7 @@ sub dump {
     );
     unshift @{ $data{isa} }, __PACKAGE__;
 
-    my $svstash = $self->get('SvSTASH');
-    if (defined $svstash) {
-          $m->add_object($svstash);
-          $data{svstash} = $m->key($$svstash);
-    };
-
-    my $magic = $self->get('MAGIC');
-    if (defined $magic) {
-          $m->add_object($magic);
-          $data{magic} = $m->key($$magic);
-    };
+    $self->add_object($_, $m, \%data) foreach qw(SvSTASH MAGIC);
 
     return %data;
 };
@@ -480,14 +466,10 @@ sub dump {
     my %data = (
         $self->next::method(@args),
     );
-    $data{lc($_)} = $self->get($_) foreach qw(NAME SAFENAME STASH);
+    $data{lc($_)} = $self->get($_) foreach qw(NAME SAFENAME);
     unshift @{ $data{isa} }, __PACKAGE__;
 
-    my $stash = $self->get('STASH');
-    if (defined $stash) {
-          $m->add_object($stash);
-          $data{stash} = $m->key($$stash);
-    };
+    # TODO $self->add_object($_, $m, \%data) foreach qw(STASH);
 
     return %data;
 };
