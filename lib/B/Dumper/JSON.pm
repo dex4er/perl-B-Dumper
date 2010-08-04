@@ -31,7 +31,7 @@ our @ISA = qw(B::Dumper);
 sub dump {
     my ($self, @args) = @_;
     $self = $self->new if not ref $self;
-    return JSON->new->ascii(1)->encode($self->get_objects(@args));
+    return JSON->new->ascii(1)->encode($self->SUPER::dump(@args));
 };
 
 sub compile (@) {

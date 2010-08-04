@@ -31,7 +31,7 @@ our @ISA = qw(B::Dumper);
 sub dump {
     my ($self, @args) = @_;
     $self = $self->new if not ref $self;
-    return Dumper $self->get_objects(@args);
+    return Dumper $self->SUPER::dump(@args);
 };
 
 sub compile (@) {

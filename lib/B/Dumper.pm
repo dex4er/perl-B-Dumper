@@ -45,19 +45,19 @@ sub new {
 
 sub memory { $_[0]->{memory} };
 
-sub get_objects {
+sub add_objects {
     my ($self, @args) = @_;
 
     $self->memory->add_object($_) foreach @args;
-
-    my %hash = %{$self->memory->addr};
-    return \%hash;
 };
 
 sub dump {
     my ($self, @args) = @_;
     $self = $self->new if not ref $self;
-    return $self->get_objects(@args);
+    $self->add_objects(@args);
+
+    my %hash = %{$self->memory->addr};
+    return \%hash;
 };
 
 sub compile (@) {
