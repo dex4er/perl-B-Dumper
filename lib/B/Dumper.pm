@@ -36,21 +36,45 @@ use warnings;
 
 our $VERSION = '0.01';
 
+sub new {
+    my ($class, @args) = @_;
+    return bless {
+        memory => B::Dumper::Memory->new(@args),
+    } => $class;
+};
+
+sub memory { $_[0]->{memory} };
+
+sub get_objects {
+    my ($self, @args) = @_;
+
+    $self->memory->add_object($_) foreach @args;
+
+    my %hash = %{$self->memory->addr};
+    return \%hash;
+};
+
+sub dump {
+    my ($self, @args) = @_;
+    $self = $self->new if not ref $self;
+    return $self->get_objects(@args);
+};
+
 sub compile (@) {
     my @args = @_;
 
     my @newargs;
-    my $dumper_class = 'B::Dumper::YAML';
+    my $dumper_class = __PACKAGE__;
 
     foreach my $arg (@args) {
         if ($arg eq '-perl') {
-            $dumper_class = 'B::Dumper::Perl';
+            $dumper_class = "${dumper_class}::Perl";
         }
         elsif ($arg eq '-yaml') {
-            $dumper_class = 'B::Dumper::YAML';
+            $dumper_class = "${dumper_class}::YAML";
         }
         elsif ($arg eq '-json') {
-            $dumper_class = 'B::Dumper::JSON';
+            $dumper_class = "${dumper_class}::JSON";
         }
         else {
             push @newargs, $arg;
@@ -102,33 +126,6 @@ sub add_object {
     };
 
     return { $key => $self->addr->{$key} };
-};
-
-
-package B::Dumper::Base;
-
-sub new {
-    my ($class, @args) = @_;
-    return bless {
-        memory => B::Dumper::Memory->new(@args),
-    } => $class;
-};
-
-sub memory { $_[0]->{memory} };
-
-sub get_objects {
-    my ($self, @args) = @_;
-
-    $self->memory->add_object($_) foreach @args;
-
-    my %hash = %{$self->memory->addr};
-    return \%hash;
-};
-
-sub dump {
-    my ($self, @args) = @_;
-    $self = $self->new if not ref $self;
-    return $self->get_objects(@args);
 };
 
 

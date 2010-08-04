@@ -25,7 +25,7 @@ our $VERSION = '0.01';
 use JSON;
 
 use B::Dumper;
-our @ISA = qw(B::Dumper::Base);
+our @ISA = qw(B::Dumper);
 
 
 sub dump {
