@@ -54,6 +54,7 @@ sub add_objects {
 sub dump {
     my ($self, @args) = @_;
     $self = $self->new if not ref $self;
+
     $self->add_objects(@args);
 
     my %hash = %{$self->memory->addr};
