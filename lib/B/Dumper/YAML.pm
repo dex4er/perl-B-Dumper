@@ -34,6 +34,10 @@ sub dump {
     return Dump $self->get_objects(@args);
 };
 
+sub compile (@) {
+    # ... # TODO compile
+};
+
 
 1;
 

@@ -34,6 +34,10 @@ sub dump {
     return JSON->new->ascii(1)->encode($self->get_objects(@args));
 };
 
+sub compile (@) {
+    # ... # TODO compile
+};
+
 
 1;
 
