@@ -23,7 +23,7 @@ B::Dumper - Dump all B objects at once
 
 =head1 DESCRIPTION
 
-This compiler backend dumps all <B> objects in one data structure.
+This compiler backend dumps all L<B> objects in one data structure.
 
 =for readme stop
 
