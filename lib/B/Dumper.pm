@@ -137,8 +137,7 @@ package B::BASE;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self) = @_;
 
     my %data = (
         class => B::class($self),
@@ -169,11 +168,10 @@ package B::MAGIC;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my %data = (
-        $self->B::BASE::dump(@args),
+        $self->B::BASE::dump($m, @args),
     );
     $data{lc($_)} = $self->get($_) foreach qw(FLAGS MOREMAGIC PRIVATE PTR REGEX TYPE precomp);
     unshift @{ $data{isa} }, __PACKAGE__;
@@ -193,11 +191,10 @@ package B::OBJECT;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my %data = (
-        $self->B::BASE::dump(@args),
+        $self->B::BASE::dump($m, @args),
     );
     unshift @{ $data{isa} }, __PACKAGE__;
 
@@ -214,11 +211,10 @@ package B::SPECIAL;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my %data = (
-        $self->next::method(@args),
+        $self->next::method($m, @args),
         base_special => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     unshift @{ $data{isa} }, __PACKAGE__;
@@ -232,11 +228,10 @@ package B::SV;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my %data = (
-        $self->next::method(@args),
+        $self->next::method($m, @args),
         base_sv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     $data{lc($_)} = $self->get($_) foreach qw(REFCNT FLAGS);
@@ -251,11 +246,10 @@ package B::RV;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my %data = (
-        $self->next::method(@args),
+        $self->next::method($m, @args),
         base_rv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     unshift @{ $data{isa} }, __PACKAGE__;
@@ -271,11 +265,10 @@ package B::IV;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my %data = (
-        $self->next::method(@args),
+        $self->next::method($m, @args),
         base_iv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     unshift @{ $data{isa} }, __PACKAGE__;
@@ -304,11 +297,10 @@ package B::NV;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my %data = (
-        $self->next::method(@args),
+        $self->next::method($m, @args),
         base_nv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     unshift @{ $data{isa} }, __PACKAGE__;
@@ -326,11 +318,10 @@ package B::PV;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my %data = (
-        $self->next::method(@args),
+        $self->next::method($m, @args),
         base_pv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     unshift @{ $data{isa} }, __PACKAGE__;
@@ -350,11 +341,10 @@ package B::PVIV;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my %data = (
-        $self->next::method(@args),
+        $self->next::method($m, @args),
         base_pviv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     unshift @{ $data{isa} }, __PACKAGE__;
@@ -368,11 +358,10 @@ package B::PVNV;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my %data = (
-        $self->next::method(@args),
+        $self->next::method($m, @args),
         base_pvnv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     unshift @{ $data{isa} }, __PACKAGE__;
@@ -386,11 +375,10 @@ package B::PVMG;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my %data = (
-        $self->next::method(@args),
+        $self->next::method($m, @args),
         base_pvmg => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
     unshift @{ $data{isa} }, __PACKAGE__;
@@ -406,8 +394,7 @@ package B::HV;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my %array = $self->ARRAY;
     my %newarray;
@@ -418,7 +405,7 @@ sub dump {
     };
 
     my %data = (
-        $self->next::method(@args),
+        $self->next::method($m, @args),
         array => \%newarray,
     );
     $data{lc($_)} = $self->get($_) foreach qw(FILL MAX KEYS RITER NAME PMROOT);
@@ -433,8 +420,7 @@ package B::AV;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my @array = $self->ARRAY;
     my @newarray;
@@ -445,7 +431,7 @@ sub dump {
     };
 
     my %data = (
-        $self->next::method(@args),
+        $self->next::method($m, @args),
         array => \@newarray,
     );
     $data{lc($_)} = $self->get($_) foreach qw(FILL MAX AvFLAGS);
@@ -460,11 +446,10 @@ package B::GV;
 use mro 'c3';
 
 sub dump {
-    my ($self) = shift;
-    my ($m) = my @args = @_;
+    my ($self, $m, @args) = @_;
 
     my %data = (
-        $self->next::method(@args),
+        $self->next::method($m, @args),
     );
     $data{lc($_)} = $self->get($_) foreach qw(NAME SAFENAME);
     unshift @{ $data{isa} }, __PACKAGE__;
