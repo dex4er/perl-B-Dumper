@@ -130,6 +130,20 @@ sub add_object {
     return { $key => $self->addr->{$key} };
 };
 
+sub dump {
+    my ($self, $what) = @_;
+
+    my $bobj = eval { $what->isa('B::OBJECT') || $what->isa('B::MAGIC') }
+        ? $what
+        : B::svref_2object(ref $what ? $what : \$what);
+    my $addr = $$bobj;
+    my $key = $self->key($addr);
+
+    return {} if not exists $self->addr->{$key};
+
+    return { $key => $self->addr->{$key} };
+};
+
 
 package B::BASE;
 
