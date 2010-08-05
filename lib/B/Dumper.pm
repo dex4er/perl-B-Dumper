@@ -57,7 +57,7 @@ sub dump {
 
     $self->add_objects(@args);
 
-    my %hash = %{$self->memory->addr};
+    my %hash = %{ $self->memory->addr };
     return \%hash;
 };
 
@@ -90,6 +90,7 @@ sub compile (@) {
         return @newargs;
     };
 };
+
 
 package B::Dumper::Memory;
 
