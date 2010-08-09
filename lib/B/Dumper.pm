@@ -100,7 +100,7 @@ sub new {
 
     return bless {
         addr => {},
-        key  => sub { sprintf "0x%x", $_[0] },
+        key  => sub { $_[0] }, # TODO sub { sprintf "0x%x", $_[0] },
         @args,
     } => $class;
 };
