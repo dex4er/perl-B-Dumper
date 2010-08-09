@@ -196,7 +196,7 @@ sub dump {
     $data{lc($_)} = $self->get($_) foreach qw(FLAGS MOREMAGIC PRIVATE PTR REGEX TYPE precomp);
     unshift @{ $data{isa} }, __PACKAGE__;
 
-    $self->add_object('OBJ', $m, \%data);
+    # $self->add_object('OBJ', $m, \%data); # TODO core dump
 
     return %data;
 };
@@ -481,9 +481,10 @@ sub dump {
     unshift @{ $data{isa} }, __PACKAGE__;
 
     $self->add_value($_, $m, \%data) foreach qw(CVGEN FILE FLAGS GvREFCNT LINE NAME SAFENAME is_empty);
+    $self->add_object($_, $m, \%data) foreach qw(AV CV FILEGV FORM HV IO SV);
 
     # TODO don't recurse to forbidden STASHes?
-    $self->add_object($_, $m, \%data) foreach qw(AV CV FILEGV FORM HV IO STASH SV);
+    $self->add_object('STASH', $m, \%data);
 
     return %data;
 };
@@ -514,17 +515,40 @@ sub dump {
 };
 
 
+package B::CV;
+
+use mro 'c3';
+
+sub dump {
+    my ($self, $m, @args) = @_;
+
+    my %data = (
+        $self->next::method($m, @args),
+    );
+    unshift @{ $data{isa} }, __PACKAGE__;
+
+    $self->add_value($_, $m, \%data) foreach qw(DEPTH FILE OUTSIDE_SEQ ROOT START STASH XSUB XSUBANY);
+    $self->add_object($_, $m, \%data) foreach qw(GV OUTSIDE);
+
+    unless ($self->STASH->isa('B::HV') and $self->STASH->NAME =~ /^B::/) {
+        $self->add_object('PADLIST', $m, \%data);
+    };
+
+    return %data;
+};
+
+
 package B::PVLV;
 
 sub dump {
-    die "Unimplemented";
+    die "Unimplemented: ", __PACKAGE__, "::dump";
 };
 
 
 package B::BM;
 
 sub dump {
-    die "Unimplemented";
+    die "Unimplemented: ", __PACKAGE__, "::dump";
 };
 
 
