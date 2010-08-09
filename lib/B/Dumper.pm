@@ -165,13 +165,21 @@ sub get {
     return eval { $self->$what(@args) };
 };
 
+sub add_value {
+    my ($self, $what, $memory, $hashref) = @_;
+    my $v = $self->get($what);
+    return unless defined $v;
+
+    return $hashref->{lc($what)} = $memory->key($v);
+};
+
 sub add_object {
     my ($self, $what, $memory, $hashref) = @_;
     my $rv = $self->get($what);
-    if (defined $rv and $$rv) {
-        $memory->add_object($rv);
-        $hashref->{lc($what)} = $memory->key($$rv);
-    };
+    return unless defined $rv and $$rv;
+
+    $memory->add_object($rv);
+    return $hashref->{lc($what)} = $memory->key($$rv);
 };
 
 
@@ -195,6 +203,8 @@ sub dump {
 
 sub get { goto &B::BASE::get };
 
+sub add_value { goto &B::BASE::add_value };
+
 sub add_object { goto &B::BASE::add_object };
 
 
@@ -214,6 +224,8 @@ sub dump {
 };
 
 sub get { goto &B::BASE::get };
+
+sub add_value { goto &B::BASE::add_value };
 
 sub add_object { goto &B::BASE::add_object };
 
@@ -246,8 +258,9 @@ sub dump {
         $self->next::method($m, @args),
         base_sv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
-    $data{lc($_)} = $self->get($_) foreach qw(FLAGS REFCNT);
     unshift @{ $data{isa} }, __PACKAGE__;
+
+    $self->add_value($_, $m, \%data) foreach qw(FLAGS REFCNT);
 
     return %data;
 };
@@ -286,12 +299,12 @@ sub dump {
     unshift @{ $data{isa} }, __PACKAGE__;
 
     if ($self->FLAGS & B::SVf_IOK) {
-        $data{lc($_)} = $self->get($_) foreach qw(int_value needs64bits packiv);
+        $self->add_value($_, $m, \%data) foreach qw(int_value needs64bits packiv);
         if ($self->FLAGS & B::SVf_IVisUV) {
-            $data{uvx} = $self->get('UVX');
+            $self->add_value('UVX', $m, \%data);
         }
         else {
-            $data{lc($_)} = $self->get($_) foreach qw(IV IVX);
+            $self->add_value($_, $m, \%data) foreach qw(IV IVX);
         };
 
     };
@@ -318,7 +331,7 @@ sub dump {
     unshift @{ $data{isa} }, __PACKAGE__;
 
     if ($self->FLAGS & B::SVf_NOK) {
-        $data{lc($_)} = $self->get($_) foreach qw(NV NVX);
+        $self->add_value($_, $m, \%data) foreach qw(NV NVX);
     };
 
     return %data;
@@ -339,7 +352,7 @@ sub dump {
     unshift @{ $data{isa} }, __PACKAGE__;
 
     if ($self->FLAGS & B::SVf_POK) {
-        $data{lc($_)} = $self->get($_) foreach qw(PV PVX);
+        $self->add_value($_, $m, \%data) foreach qw(PV PVX);
     };
 
     $self->add_object('RV', $m, \%data);
@@ -420,8 +433,9 @@ sub dump {
         $self->next::method($m, @args),
         array => \%newarray,
     );
-    $data{lc($_)} = $self->get($_) foreach qw(FILL KEYS MAX NAME PMROOT RITER);
     unshift @{ $data{isa} }, __PACKAGE__;
+
+    $self->add_value($_, $m, \%data) foreach qw(FILL KEYS MAX NAME PMROOT RITER);
 
     return %data;
 };
@@ -446,8 +460,9 @@ sub dump {
         $self->next::method($m, @args),
         array => \@newarray,
     );
-    $data{lc($_)} = $self->get($_) foreach qw(AvFLAGS FILL MAX);
     unshift @{ $data{isa} }, __PACKAGE__;
+
+    $self->add_value($_, $m, \%data) foreach qw(AvFLAGS FILL MAX);
 
     return %data;
 };
@@ -463,8 +478,9 @@ sub dump {
     my %data = (
         $self->next::method($m, @args),
     );
-    $data{lc($_)} = $self->get($_) foreach qw(CVGEN FILE FLAGS GvREFCNT LINE NAME SAFENAME is_empty);
     unshift @{ $data{isa} }, __PACKAGE__;
+
+    $self->add_value($_, $m, \%data) foreach qw(CVGEN FILE FLAGS GvREFCNT LINE NAME SAFENAME is_empty);
 
     # TODO don't recurse to forbidden STASHes?
     $self->add_object($_, $m, \%data) foreach qw(AV CV FILEGV FORM HV IO STASH SV);
@@ -483,10 +499,9 @@ sub dump {
     my %data = (
         $self->next::method($m, @args),
     );
-    # TODO $self->add_value($_, $m, \%data) foreach qw()
-    $data{lc($_)} = $self->get($_) foreach qw(BOTTOM_NAME FMT_NAME IoFLAGS IoTYPE IsSTD LINES LINES_LEFT PAGE PAGE_LEN SUBPROCESS TOP_NAME);
     unshift @{ $data{isa} }, __PACKAGE__;
 
+    $self->add_value($_, $m, \%data) foreach qw(BOTTOM_NAME FMT_NAME IoFLAGS IoTYPE IsSTD LINES LINES_LEFT PAGE PAGE_LEN SUBPROCESS TOP_NAME);
     $self->add_object($_, $m, \%data) foreach qw(BOTTOM_GV FMT_GV TOP_GV);
 
     return %data;
