@@ -473,6 +473,12 @@ sub dump {
 };
 
 
+package B::PVLV;
+
+sub dump {
+    die "Unimplemented";
+};
+
 1;
 
 
