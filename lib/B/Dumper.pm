@@ -193,10 +193,12 @@ sub dump {
     my %data = (
         $self->B::BASE::dump($m, @args),
     );
-    $data{lc($_)} = $self->get($_) foreach qw(FLAGS MOREMAGIC PRIVATE PTR REGEX TYPE precomp);
     unshift @{ $data{isa} }, __PACKAGE__;
 
-    # $self->add_object('OBJ', $m, \%data); # TODO core dump
+    $self->add_value($_, $m, \%data) foreach qw(FLAGS MOREMAGIC PRIVATE PTR REGEX TYPE precomp);
+    if ($self->TYPE ne "\0") {
+        $self->add_object('OBJ', $m, \%data);
+    };
 
     return %data;
 };
@@ -540,8 +542,20 @@ sub dump {
 
 package B::PVLV;
 
+use mro 'c3';
+
 sub dump {
-    die "Unimplemented: ", __PACKAGE__, "::dump";
+    my ($self, $m, @args) = @_;
+
+    my %data = (
+        $self->B::PVMG::dump($m, @args),   # skip B::CV
+    );
+    unshift @{ $data{isa} }, __PACKAGE__;
+
+    $self->add_value($_, $m, \%data) foreach qw(TARGLEN TARGOFF TYPE);
+    $self->add_object('TARG', $m, \%data);
+
+    return %data;
 };
 
 
