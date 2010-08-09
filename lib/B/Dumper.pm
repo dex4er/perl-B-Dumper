@@ -169,7 +169,7 @@ sub get {
 sub add_object {
     my ($self, $what, $memory, $hashref) = @_;
     my $rv = $self->get($what);
-    if (defined $rv) {
+    if (defined $rv and $$rv) {
         $memory->add_object($rv);
         $hashref->{lc($what)} = $memory->key($$rv);
     };
