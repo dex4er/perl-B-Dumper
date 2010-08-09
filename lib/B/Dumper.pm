@@ -487,7 +487,6 @@ sub dump {
     $data{lc($_)} = $self->get($_) foreach qw(BOTTOM_NAME FMT_NAME IoFLAGS IoTYPE IsSTD LINES LINES_LEFT PAGE PAGE_LEN SUBPROCESS TOP_NAME);
     unshift @{ $data{isa} }, __PACKAGE__;
 
-    # TODO don't recurse to forbidden STASHes?
     $self->add_object($_, $m, \%data) foreach qw(BOTTOM_GV FMT_GV TOP_GV);
 
     return %data;
