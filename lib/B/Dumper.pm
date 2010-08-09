@@ -479,6 +479,14 @@ sub dump {
     die "Unimplemented";
 };
 
+
+package B::BM;
+
+sub dump {
+    die "Unimplemented";
+};
+
+
 1;
 
 
