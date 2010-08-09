@@ -463,10 +463,11 @@ sub dump {
     my %data = (
         $self->next::method($m, @args),
     );
-    $data{lc($_)} = $self->get($_) foreach qw(NAME SAFENAME);
+    $data{lc($_)} = $self->get($_) foreach qw(NAME SAFENAME CVGEN LINE FILE GvREFCNT FLAGS is_empty);
     unshift @{ $data{isa} }, __PACKAGE__;
 
-    # TODO $self->add_object($_, $m, \%data) foreach qw(STASH);
+    # TODO don't recurse to forbidden STASHes?
+    $self->add_object($_, $m, \%data) foreach qw(STASH SV IO FORM AV HV CV FILEGV);
 
     return %data;
 };
