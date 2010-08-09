@@ -170,7 +170,7 @@ sub add_value {
     my $v = $self->get($what);
     return unless defined $v;
 
-    return $hashref->{lc($what)} = $memory->key($v);
+    return $hashref->{lc($what)} = $v;
 };
 
 sub add_object {
@@ -501,8 +501,14 @@ sub dump {
     );
     unshift @{ $data{isa} }, __PACKAGE__;
 
-    $self->add_value($_, $m, \%data) foreach qw(BOTTOM_NAME FMT_NAME IoFLAGS IoTYPE IsSTD LINES LINES_LEFT PAGE PAGE_LEN SUBPROCESS TOP_NAME);
+    $self->add_value($_, $m, \%data) foreach qw(BOTTOM_NAME FMT_NAME IoFLAGS IoTYPE LINES LINES_LEFT PAGE PAGE_LEN SUBPROCESS TOP_NAME);
     $self->add_object($_, $m, \%data) foreach qw(BOTTOM_GV FMT_GV TOP_GV);
+
+    foreach (qw(stdin stdout stderr)) {
+        my $v = $self->get('IsSTD', $_);
+        next unless $v;
+        $data{"isstd_$_"} = $v;
+    };
 
     return %data;
 };
