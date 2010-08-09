@@ -57,8 +57,7 @@ sub dump {
 
     $self->add_objects(@args);
 
-    my %hash = %{ $self->memory->addr };
-    return \%hash;
+    return $self->memory->addr;
 };
 
 sub compile (@) {
