@@ -246,7 +246,7 @@ sub dump {
         $self->next::method($m, @args),
         base_sv => do { no strict 'refs'; [ @{*{__PACKAGE__.'::ISA'}} ] },
     );
-    $data{lc($_)} = $self->get($_) foreach qw(REFCNT FLAGS);
+    $data{lc($_)} = $self->get($_) foreach qw(FLAGS REFCNT);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
@@ -395,7 +395,7 @@ sub dump {
     );
     unshift @{ $data{isa} }, __PACKAGE__;
 
-    $self->add_object($_, $m, \%data) foreach qw(SvSTASH MAGIC);
+    $self->add_object($_, $m, \%data) foreach qw(MAGIC SvSTASH);
 
     return %data;
 };
@@ -420,7 +420,7 @@ sub dump {
         $self->next::method($m, @args),
         array => \%newarray,
     );
-    $data{lc($_)} = $self->get($_) foreach qw(FILL MAX KEYS RITER NAME PMROOT);
+    $data{lc($_)} = $self->get($_) foreach qw(FILL KEYS MAX NAME PMROOT RITER);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
@@ -446,7 +446,7 @@ sub dump {
         $self->next::method($m, @args),
         array => \@newarray,
     );
-    $data{lc($_)} = $self->get($_) foreach qw(FILL MAX AvFLAGS);
+    $data{lc($_)} = $self->get($_) foreach qw(AvFLAGS FILL MAX);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     return %data;
@@ -463,11 +463,11 @@ sub dump {
     my %data = (
         $self->next::method($m, @args),
     );
-    $data{lc($_)} = $self->get($_) foreach qw(NAME SAFENAME CVGEN LINE FILE GvREFCNT FLAGS is_empty);
+    $data{lc($_)} = $self->get($_) foreach qw(CVGEN FILE FLAGS GvREFCNT LINE NAME SAFENAME is_empty);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     # TODO don't recurse to forbidden STASHes?
-    $self->add_object($_, $m, \%data) foreach qw(STASH SV IO FORM AV HV CV FILEGV);
+    $self->add_object($_, $m, \%data) foreach qw(AV CV FILEGV FORM HV IO STASH SV);
 
     return %data;
 };
@@ -484,7 +484,7 @@ sub dump {
         $self->next::method($m, @args),
     );
     # TODO $self->add_value($_, $m, \%data) foreach qw()
-    $data{lc($_)} = $self->get($_) foreach qw(LINES PAGE PAGE_LEN LINES_LEFT TOP_NAME FMT_NAME BOTTOM_NAME SUBPROCESS IoTYPE IoFLAGS IsSTD);
+    $data{lc($_)} = $self->get($_) foreach qw(BOTTOM_NAME FMT_NAME IoFLAGS IoTYPE IsSTD LINES LINES_LEFT PAGE PAGE_LEN SUBPROCESS TOP_NAME);
     unshift @{ $data{isa} }, __PACKAGE__;
 
     # TODO don't recurse to forbidden STASHes?
