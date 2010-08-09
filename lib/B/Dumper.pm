@@ -473,6 +473,27 @@ sub dump {
 };
 
 
+package B::IO;
+
+use mro 'c3';
+
+sub dump {
+    my ($self, $m, @args) = @_;
+
+    my %data = (
+        $self->next::method($m, @args),
+    );
+    # TODO $self->add_value($_, $m, \%data) foreach qw()
+    $data{lc($_)} = $self->get($_) foreach qw(LINES PAGE PAGE_LEN LINES_LEFT TOP_NAME FMT_NAME BOTTOM_NAME SUBPROCESS IoTYPE IoFLAGS IsSTD);
+    unshift @{ $data{isa} }, __PACKAGE__;
+
+    # TODO don't recurse to forbidden STASHes?
+    $self->add_object($_, $m, \%data) foreach qw(BOTTOM_GV FMT_GV TOP_GV);
+
+    return %data;
+};
+
+
 package B::PVLV;
 
 sub dump {
